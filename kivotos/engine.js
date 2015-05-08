@@ -32,6 +32,7 @@ kivotos.Engine=function(elementId) {
 	this.dragStart={x:0,y:0};
 	this.viewportStart={x:0,y:0};
 	this.onExecutionEnd=function() {};
+	this.onFollowPlayerChanged=function() {};
 	
 	this.level;
 	
@@ -56,12 +57,17 @@ kivotos.Engine=function(elementId) {
 		this.level.height=this.level.terrain.length;
 		this.level.width=this.level.terrain[0].length;
 		this.level.halfBlock=this.level.blockSize/2;
-		this.titleElem.innerHTML=this.level.name;
+		//this.titleElem.innerHTML=this.level.name;
 		this.descriptionElem.innerHTML=this.level.description;
 	}
 	
 	this.setUserCode=function(source) {
 		console.log(this.level.context.run(source));
+	}
+	
+	this.setFollowPlayer=function(value) {
+		if(this.onFollowPlayerChanged) {this.onFollowPlayerChanged(value);}
+		this.followPlayer=value;
 	}
 	
 	this.start=function() {
@@ -95,8 +101,8 @@ kivotos.Engine=function(elementId) {
 			//move viewport
 			if(thisobj.followPlayer) {
 				//follow player
-				var viewportTx=canvasWidth/2-level.player.x;
-				var viewportTy=canvasHeight/2-level.player.y;
+				var viewportTx=canvasWidth/2-level.player.x-level.blockSize;
+				var viewportTy=canvasHeight/2-level.player.y-level.blockSize;
 				var viewportAx=Math.pow(Math.abs(thisobj.viewportX-viewportTx),1.5)/700;
 				var viewportAy=Math.pow(Math.abs(thisobj.viewportY-viewportTy),1.5)/700;			
 				if(viewportAx>0.2) {
@@ -151,7 +157,8 @@ kivotos.Engine=function(elementId) {
 	
 	this._onMouseDown=function(event) {
 		event=event||window.event;
-		thisobj.followPlayer=false;
+		thisobj.setFollowPlayer(false);
+		//thisobj.followPlayer=false;
 		thisobj.isDragging=true;
 		thisobj.dragStart.x=event.x;
 		thisobj.dragStart.y=event.y;
@@ -206,6 +213,7 @@ kivotos.Engine=function(elementId) {
 			} else if(thisobj.executionStatus==thisobj._STATUS_ENDED) {
 				thisobj.onExecutionEnd(false); //failure
 			}
+			thisobj.level.afterEvaluation();
 		}
 	}
 	
@@ -229,8 +237,8 @@ kivotos.Sprite=function(url, width, height, rows, columns) {
 	this.column=0;
 	
 	this.setFrame=function(row,column) {
-		this.row=row%this.rows;		
-		this.column=column%this.columns;
+		if(row!=null) {this.row=row%this.rows;}
+		if(column!=null) {this.column=column%this.columns;}
 	}
 	
 	this.draw=function(context,x,y) {
