@@ -157,6 +157,8 @@ kivotos.Engine=function(elementId) {
 	
 	this._onMouseDown=function(event) {
 		event=event||window.event;
+		event.x=event.x||event.pageX;
+		event.y=event.y||event.pageY;
 		thisobj.setFollowPlayer(false);
 		//thisobj.followPlayer=false;
 		thisobj.isDragging=true;
@@ -173,6 +175,8 @@ kivotos.Engine=function(elementId) {
 	}
 	this._onMouseMove=function(event) {
 		event=event||window.event;
+		event.x=event.x||event.pageX;
+		event.y=event.y||event.pageY;
 		if(thisobj.isDragging) {
 			var dx=event.x-thisobj.dragStart.x;
 			var dy=event.y-thisobj.dragStart.y;
