@@ -64,9 +64,45 @@ class Database {
 		
 		return $output;
 	}
+
+	public function putAchievement($userId, $data) {
+		if(!$this->achievementExists($userId, $data)) {
+			//insert
+			$statement=$this->db->prepare("INSERT INTO achievements(user_id,level_id,code,score) VALUES(?,?,?,?)");
+			if(!$statement) {return false;}
+			$levelId=$data["level_id"];
+			$code=$data["code"];
+			$score=$data["score"];
+			$statement->bind_param("iiss",$userId,$levelId,$code,$score);
+		} else {
+			//update
+			$statement=$this->db->prepare("UPDATE achievements SET code=?, score=? WHERE user_id=? AND level_id=?");
+			if(!$statement) {return false;}
+			$levelId=$data["level_id"];
+			$code=$data["code"];
+			$score=$data["score"];
+			$statement->bind_param("ssii",$code,$score,$userId,$levelId);
+		}
+		if(!$statement->execute()) {return false;}
+		return true;	
+	}
 	
 	public function getLastInsertId() {
 		return $this->db->insert_id;
+	}
+
+	private function achievementExists($userId, $data) {
+		//achievements
+		$output["achievements"]=array();
+		$statement=$this->db->prepare("SELECT * FROM achievements WHERE user_id=? AND level_id=?");
+		if(!$statement) {return false;}
+		$levelId=$data["level_id"];
+		$statement->bind_param("ii",$userId,$levelId);
+		if(!$statement->execute()) {return false;}
+		$result=$statement->get_result();
+		if($result===false) {return false;}
+		if($row=$result->fetch_assoc()) {return true;}
+		return false;
 	}
 	
 }

@@ -33,6 +33,8 @@ kivotos.Engine=function(elementId) {
 	this.viewportStart={x:0,y:0};
 	this.onExecutionEnd=function() {};
 	this.onFollowPlayerChanged=function() {};
+	this.previousScore=0;
+	this.onLevelScoreChanged=function() {};
 	
 	this.level;
 	
@@ -53,7 +55,7 @@ kivotos.Engine=function(elementId) {
 	this.loadLevel=function(level) {
 		console.log("Initializing level '"+level.name+"'");
 		this.level=level;
-		this.level.init();
+		this.level._init();
 		this.level.height=this.level.terrain.length;
 		this.level.width=this.level.terrain[0].length;
 		this.level.halfBlock=this.level.blockSize/2;
@@ -62,7 +64,12 @@ kivotos.Engine=function(elementId) {
 	}
 	
 	this.setUserCode=function(source) {
-		console.log(this.level.context.run(source));
+		this.level.currentCode=source;
+		//add an execution counter to deal with long or infinite loops
+		source="var __kxc=0;"+source;
+		source=source.replace("{","{__kxc++;if(__kxc>1000) {throw 'Infinite loop';}");
+		//execute
+		return this.level.context.run(source);
 	}
 	
 	this.setFollowPlayer=function(value) {
@@ -218,6 +225,12 @@ kivotos.Engine=function(elementId) {
 				thisobj.onExecutionEnd(false); //failure
 			}
 			thisobj.level.afterEvaluation();
+			
+			//check score
+			if(thisobj.previousScore!=thisobj.level.score) {
+				thisobj.onLevelScoreChanged(thisobj.level.score);
+			}
+			thisobj.previousScore=thisobj.level.score;
 		}
 	}
 	

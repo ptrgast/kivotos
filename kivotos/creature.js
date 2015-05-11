@@ -31,8 +31,7 @@ kivotos.Creature=function(h,v,url,size,frames,rows,framePeriod,level) {
 		this.y=this.v*this.level.blockSize-this.level.halfBlock;
 	}
 
-	this.enqueue=function(action) {
-		console.log("Enqueued action");
+	this.enqueue=function(action) {		
 		this.queue.push(action);
 	}
 	

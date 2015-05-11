@@ -88,9 +88,9 @@ function register() {
 		$response->setAll("error","password"); $response->respond();
 	}
 	
-	//store user	
+	//store user
 	if(!$database->putUser($params)) { //failed to store user
-		$response->setAll("error","store-user"); $response->respond();
+		$response->setAll("error","store"); $response->respond();
 	}
 	
 	$_SESSION["user-id"]=$database->getLastInsertId();
@@ -110,6 +110,16 @@ function getprofile() {
 }
 
 function setachievement() {
+	global $database, $response;
+	$params=requireParams(array("level_id","code","score"));
+	if($params==null) {$response->setAll("error","params"); $response->respond();}
+
+	//store achievement
+	if(!$database->putAchievement(getUserId(), $params)) { //failed to store achievement
+		$response->setAll("error","store"); $response->respond();
+	}
+	$response->setBody("Achievement stored!");
+	$response->respond();	
 }
 
 //---------- Other Functions ----------
@@ -120,7 +130,7 @@ function requireParams($params) {
 	foreach($params as $param) {
 		if(!isset($_REQUEST[$param])) {return null;}
 		$value=$_REQUEST[$param];
-		$value=str_replace(array("'","\r","\n"),array("&apos;","",""),$value);
+		$value=str_replace(array("'","\r"),array("&apos;",""),$value);
 		$output[$param]=$value;
 	}
 	return $output;
