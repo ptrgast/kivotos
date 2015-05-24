@@ -12,6 +12,8 @@ kivotos.Level=function() {
 	this.creatures=[];
 	this._init=function() {		
 		this.init();
+		//reset score
+		this.score=0;
 		//reset goals
 		for(var i=0;i<this.goals.length;i++) {this.goals[i].reset();}
 	}

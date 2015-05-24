@@ -7,7 +7,7 @@ $response=new ApiResponse();
 
 //connect to database
 try {
-	$database=new Database($dbHost, $dbUser, $dbPassword, $dbName);
+	$database=new Database($dbHost, $dbUser, $dbPassword, $dbName, $tablesPrefix);
 } catch(Exception $ex) {
 	$response->setAll("error","database");
 	$response->respond();

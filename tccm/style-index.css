@@ -1,0 +1,114 @@
+body {
+	padding: 0 30px 30px 30px;
+	margin: 0;
+	background-color: #524A3C;
+	font-family: 'GidoleRegular'; 
+	font-weight: normal; 
+	font-style: normal; 
+	font-size: 1em;
+	min-height: 100%;
+	z-index: 1;
+	color: #999084;
+}
+
+h1, h2 ,h3 {
+	font-family: 'BuryCapsMedium'; 
+	font-weight: normal; 
+	font-style: normal;
+	color: #a45b13;
+}
+
+h2 ,h3 {
+	margin: 0.5em 0px;
+}
+
+body>header {
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+header>h1 {
+	font-size: 3.5em;
+	margin:10px 0 0 0;
+	color: #E58220;
+}
+
+header>h1 + p {
+	margin-top:0px;	
+	color: #eceadf;
+	font-size: 1.2em;
+}
+
+body>footer {
+	margin-top: 20px;
+	text-align: center;			
+}
+
+.shadow {
+	box-shadow: 0px 5px 5px rgba(0,0,0,0.5);
+}
+
+#profile-tabs, #signin-register-tabs {
+	max-width: 400px;
+	margin:auto;
+}
+
+#signin-register-tabs input {
+	width: 250px;
+	padding: 4px;
+	margin-bottom: 10px;
+	font-size: 0.9em;
+}
+
+#signin-register-tabs .g-recaptcha {
+	margin-bottom: 10px;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+#logo {
+	text-align: center;
+}
+
+.hidden {display: none;}
+
+#signin-error, #register-error {
+	padding: 0.5em;
+	margin-bottom: 10px;
+}
+
+#register-progress {
+	height: 15px;
+}
+
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
+#spinner {
+	display: block;
+	margin: auto;
+}
+
+.button-play {
+	width: 100%;
+}
+
+#social {
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	padding: 20px;
+}
+
+.value {
+	color: #681818;
+}
+
+.fb-share-button {
+	position: relative;
+	top: -3px;
+	margin-right: 10px;
+}

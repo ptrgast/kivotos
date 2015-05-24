@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Then Code Created Man</title>
+		<!--stylesheets-->
+		<link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/gidole-regular" rel="stylesheet" type="text/css"/>
+		<link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/bury-caps" rel="stylesheet" type="text/css"/>
+		<link href="3rdparty/jquery-ui/jquery-ui.css" rel="stylesheet">
+		<link href="3rdparty/codemirror-5.2/lib/codemirror.css" rel="stylesheet">
+		<link href="3rdparty/codemirror-5.2/theme/lesser-dark.css" rel="stylesheet">
+		<link href="tccm/style-game.css" rel="stylesheet">
+		<!--scripts-->
+		<script src="3rdparty/jquery/jquery-1.11.2.min.js"></script>
+		<script src="3rdparty/jquery-ui/jquery-ui.js"></script>
+		<script src="3rdparty/codemirror-5.2/lib/codemirror.js"></script>
+		<script src="3rdparty/codemirror-5.2/mode/javascript/javascript.js"></script>
+		<script src="kivotos/engine.js"></script>
+		<script src="kivotos/level.js"></script>
+		<script src="kivotos/creature.js"></script>
+		<script src="tccm/functions-game.js"></script>		
+		<script>
+			var user;
+			var engine;
+			var currentLevel=0;
+			var levels;
+			window.onload=function() {
+				levels=[new Level1(), new Level2(), new Level3(), new Level4(), new Level5(), new Level6()];
+				engine=new kivotos.Engine("canvas");
+				engine.stepPeriod=400;				
+				resize();
+				window.onresize=resize;
+				engine.onExecutionEnd=function(success) {
+					if(!success) {$("#execution-fail-dialog").dialog( "open" );}
+					else {
+						if(user!=null) {
+							$("#execution-success-dialog").html("<p><span class='ui-icon ui-icon-check float-left'></span>&nbsp;Level completed! You earned <em id='execution-success-score'>+"+engine.level.score+"</em> points.</p>");
+							$("#execution-success-score").delay(1000).effect("bounce",{},600);
+						} else {
+							$("#execution-success-dialog").html("<p><span class='ui-icon ui-icon-check float-left'></span>&nbsp;Level completed!</p>");
+						}
+						$("#execution-success-dialog").dialog( "open" );
+					}
+					//enable the run button
+					$("#button-run").prop("disabled",false);
+				}
+				engine.onFollowPlayerChanged=function(value) {
+					if(!value) {$("#button-follow-player").show();}
+					else {$("#button-follow-player").fadeOut("fast");}
+				}
+				engine.onLevelScoreChanged=function(score) {
+					$("#profile-level-score").html(score);
+					$("#profile-level-score").effect("bounce");
+				}
+				$(document).tooltip();
+				getprofile();
+				$("#spinner").hide();
+				$("#game").css("visibility","visible");
+				
+				//level selector
+				for(var i=0;i<levels.length;i++) {
+					var levelButton=$("<button>"+levels[i].name+"</button>").button();					
+					levelButton.click(function(){
+						var levelIndex=$(this).index();
+						$("#game-end").hide();
+						$("#game").show();
+						loadLevel(levelIndex);
+						if(user!=null) {editor.setValue(user.achievements[levelIndex].code);}
+					});
+					$("#list-levels").append(levelButton);
+				}								
+			}
+		</script>
+	</head>
+	<body class="ui-widget ui-widget-content">
+		<div id="spinner"><img src="tccm/spinner.gif" alt="Please wait..."/></div>
+
+		<!-- game -->
+		<div id="game" class="invisible">
+			<div id="main">
+				<header>
+					<h1><a href="./" title="Go to Homepage"><img src="tccm/logo.png" alt=""/></a> <span id="level-title">Then code created man</span></h1>
+				</header>
+				<textarea id="user-code" class="input"></textarea>
+				<div class="container">
+					<button id="button-run" onclick="program()">Run</button><script>$("#button-run").button({icons:{primary:"ui-icon-play"}});</script>				
+					<span id="execution-message"></span>
+				</div>
+				<div class="container separate-top no-top-padding">					
+					<h2>Level Goals</h2>
+					<ul id="level-goals" class="no-style"></ul>
+				</div>
+			</div>
+			<div id="canvas" style="height:600px;"></div>
+			<div id="viewport-overlay">
+					<button id="button-follow-player">Follow Player</button>
+					<script>
+						$("#button-follow-player").button({icons:{primary:"ui-icon-arrow-4"}}).hide().click(function() {
+							if(engine.followPlayer) {engine.setFollowPlayer(false);}
+							else {engine.setFollowPlayer(true);}
+						});
+					</script>			
+			</div>
+			<div id="profile-panel" class="hidden">
+				<div class="ui-widget-content ui-widget-content ui-corner-bottom shadow">
+					<span id="profile-level-score" class="value">0</span> (total: <span id="profile-score" class="value">0</span>) |
+					<span id="profile-username" class="value"></span> |
+					<a href="javascript:logout()">logout</a>
+				</div>
+			</div>
+		</div>
+		
+		<!-- select level -->
+		<div id="game-end" style="display:none">
+			<header>
+				<a href="./" title="Go to Homepage"><img src="tccm/trophy.png" alt=""/></a>
+				<h1>Well done!</h1>
+				<p>You completed the game.</p>
+			</header>
+			<div class="separator"></div>
+			<h2>Play Again</h2>
+			<div id="list-levels">
+			</div>
+		</div>
+		
+		<!-- dialogs -->
+		<div style="display:none">
+			<div id="execution-fail-dialog" title="Results"><p>I'm afraid that you failed to complete the level. Please try again...</p></div>
+			<div id="execution-success-dialog" title="Results"></div>
+			<div id="level-description-dialog" title="Level Description"></div>
+		</div>
+		
+		<!--footer scripts-->
+		<script src="tccm/terrainblock.js"></script>
+		<script src="tccm/tree.js"></script>
+		<script src="tccm/bone.js"></script>
+		<script src="tccm/pumpkin.js"></script>
+		<script src="tccm/bear.js"></script>
+		<script src="tccm/man.js"></script>
+		<script src="tccm/level1.js"></script>
+		<script src="tccm/level2.js"></script>
+		<script src="tccm/level3.js"></script>
+		<script src="tccm/level4.js"></script>
+		<script src="tccm/level5.js"></script>
+		<script src="tccm/level6.js"></script>
+		<script>
+			var editor=CodeMirror.fromTextArea(document.getElementById("user-code"), {
+				mode: "javascript",
+				styleActiveLine: true,
+				lineNumbers: true,
+				lineWrapping: true,
+				theme: "lesser-dark"
+			});
+			editor.setValue("");
+		
+			$("#execution-fail-dialog").dialog({
+			dialogClass: "no-close",
+			modal: true,
+			closeOnEscape: false,
+			autoOpen: false,
+			width: 400,
+			buttons: [
+				{
+					text: "Retry",
+					click: function() {
+						$( this ).dialog( "close" );
+						retryLevel();
+					}
+				}
+			]
+			});
+
+			$("#execution-success-dialog").dialog({
+			dialogClass: "no-close",
+			modal: true,
+			closeOnEscape: false,
+			autoOpen: false,
+			width: 400,
+			open: function() {
+				$(this).siblings('.ui-dialog-buttonpane').find("button.default-button").focus();
+			},
+			buttons: [
+				{
+					text: "Retry",
+					click: function() {
+						$( this ).dialog("close");
+						retryLevel();
+					}
+				},
+				{
+					text: "Next Level",
+					class: "default-button", 
+					click: function() {
+						var thisDialog=$(this);
+						if(user!=null) {
+							//save user's progress locally
+							var levelIndex=getCurrentLevelIndex();
+							user.achievements[levelIndex]={code:editor.getValue(),score:engine.level.score};
+							updateTotalScore(user);
+							//save user's progress at the server
+							thisDialog.html("Saving...");
+							saveProgress(true,function(success) {
+								if(success) {
+									setTimeout(function() {
+										thisDialog.dialog("close");
+										currentLevel++;
+										if(currentLevel<levels.length) {
+											//proceed to the next level
+											loadLevel(currentLevel);
+										} else {
+											//the user completed the game
+											currentLevel=levels.length;
+											$("#game").hide();
+											$("#game-end").show();
+										}									
+									},1000);
+								} else {
+									thisDialog.html("Oops! Failed to save your progress. Press <em>Next Level</em> to try again.");
+								}
+							});
+						} else {
+							//just proceed
+							thisDialog.dialog("close");						
+							currentLevel++;
+							if(currentLevel<levels.length) {
+								//proceed to the next level
+								loadLevel(currentLevel);
+							} else {
+								//the user completed the game
+								currentLevel=levels.length;
+								$("#game").hide();
+								$("#game-end").show();
+							}
+						}
+					}
+				}
+			]
+			});
+
+			$("#level-description-dialog").dialog({
+			modal: true,
+			autoOpen: false,
+			width: 650,
+			open: function() {
+				$(".description-tabs").tabs();
+			},
+			beforeClose: function() {
+				var thisDialog=$(this);
+				thisDialog.effect(
+					"transfer",
+					{to:"#button-level-description",className:"ui-effects-transfer"},
+					320,
+					function(){$("#button-level-description").effect("bounce");}
+				);
+			},
+			buttons: [
+				{
+					text: "Ok",
+					click: function() {$(this).dialog("close");}
+				}
+			]
+			});	
+		</script>		
+	</body>
+</html>

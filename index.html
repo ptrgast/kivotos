@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Then Code Created Man</title>
+		<link rel="icon" type="image/x-icon" href="./favicon.ico"/>
+		<!--stylesheets-->
+		<link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/gidole-regular" rel="stylesheet" type="text/css"/>
+		<link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/bury-caps" rel="stylesheet" type="text/css"/>
+		<link href="3rdparty/jquery-ui/jquery-ui.css" rel="stylesheet">
+		<link href="tccm/style-index.css" rel="stylesheet">
+		<!--scripts-->
+		<script src="3rdparty/jquery/jquery-1.11.2.min.js"></script>
+		<script src="3rdparty/jquery-ui/jquery-ui.js"></script>
+		<script src='https://www.google.com/recaptcha/api.js'></script>
+		<!--open graph-->
+		<meta property="og:title" content="&quot;Then Code Created Man&quot;" />
+		<meta property="og:description" content="A sandbox for rising Gods." />		
+		<meta property="og:image" content="./tccm/og-image.png" />
+	</head>
+	<body>		
+		<div id="logo"><img src="tccm/index-logo.png" alt=""/></div>
+		<header>
+			<h1>&ldquo;Then Code Created Man&rdquo;</h1>
+			<p>A sandbox for rising Gods</p>
+		</header>
+		
+		<img id="spinner" src="tccm/spinner.gif" alt="Please wait..."/>
+		
+		<!----------profile---------->
+		<div id="profile-tabs" class="hidden shadow">
+			<ul>
+				<li><a href="#tab-profile"><span class="ui-icon ui-icon-person inline-block"></span> Profile</a></li>
+			</ul>
+			<div id="tab-profile">
+				<p>
+					Welcome <span id="profile-username" class="value"></span>
+					<span style="float:right"><a href="javascript:logout()">logout</a></span>
+					<br/><span id="profile-email" class="value"></span><br/><br/>
+					Levels Completed: <span id="profile-levels" class="value"></span><br/>
+					Total Score: <span id="profile-score" class="value"></span>
+				</p>
+				<a class="button-play" href="./game.html">Play Now</a>
+			</div>
+		</div>
+
+		<!----------signin/register---------->
+		<div id="signin-register-tabs" class="hidden shadow">
+			<ul>
+				<li><a href="#tab-signin"><span class="ui-icon ui-icon-person inline-block"></span> Sign In</a></li>
+				<li><a href="#tab-register"><span class="ui-icon ui-icon-pencil inline-block"></span> Register</a></li>
+			</ul>
+			<div id="tab-signin">
+				<div id="signin-error" class="ui-state-error ui-corner-all hidden"></div>
+				<form id="form-signin" action="./users/api.php">
+					<input type="hidden" name="action" value="login"/>
+					<input id="signin-username" type="text" name="username" placeholder="username"/>
+					<input id="signin-password" type="password" name="password" placeholder="password"/>
+				</form>
+				<button id="button-signin" onclick="signin()">Sign In</button> or just <a href="game.html">Play</a>
+			</div>
+			<div id="tab-register">
+				<div id="register-error" class="ui-state-error ui-corner-all hidden"></div>
+				<form id="form-register" action="./users/api.php">
+					<input type="hidden" name="action" value="register"/>
+					<input id="register-username" type="text" name="username" placeholder="username"/>
+					<input id="register-email" type="text" name="email" placeholder="email"/>
+					<input id="register-password" type="password" name="password" placeholder="password"/>				
+					<div class="g-recaptcha" data-sitekey="6Le0dgYTAAAAAN0tzHUOAg5quGIWQ57OZqRTShYL"></div>
+					<button type="button" id="button-register">Create Account</button>
+					<div id="register-progress" class="hidden"></div>
+				</form>
+			</div>
+		</div>
+		
+		<!----------social---------->		
+		<div id="social">
+			<!--facebook-->
+			<div class="fb-share-button" data-href="http://ptrgast.com/then-code-created-man/" data-layout="button_count"></div>
+			<!--twitter-->
+			<a href="https://twitter.com/share" class="twitter-share-button" data-text="And so learning to #code became #fun" data-related="ptrgast">Tweet</a>
+			<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+		</div>
+		
+		<!----------footer---------->		
+		<footer>
+			created by ptrgast
+		</footer>
+
+		<!----------scripts---------->
+		<script>
+			$("#profile-tabs").tabs();
+			$("#signin-register-tabs").tabs({active:0});
+			$(".button-play").button();
+			$("#button-signin").button();
+			var signinErrorBox=$("#signin-error");
+			var registerErrorBox=$("#register-error");
+			var registerProgress=$("#register-progress").progressbar({value:false});
+			var registerButton=$("#button-register");
+			registerButton.button().click(function() {
+				registerButton.button("option","label","Please wait...");
+				registerButton.hide(); //hide the register button
+				registerProgress.show(); //show the progress bar
+				var registerForm=$("#form-register");
+				var formData=registerForm.serialize();
+				registerErrorBox.hide();
+				$.ajax({
+					type: "POST",
+					url: registerForm.attr("action"),
+					data: formData,
+					success: function(response) {
+						try {
+							var response=JSON.parse(response);
+							if(response.status=="error") { //error								
+								if(response.body=="robot") {registerErrorBox.html("You failed to complete the captcha test or you are a robot!");}
+								else if(response.body=="password") {registerErrorBox.html("The password you provided is too short! Please use a password with at least 8 characters.");}
+								else if(response.body=="store-user") {registerErrorBox.html("This username and/or this email are already registered!");}
+								registerErrorBox.show();
+								//reset the captcha
+								grecaptcha.reset();
+								//enable the button
+								registerButton.button("option","label","Create Account");
+								registerProgress.hide(); //hide the progress bar
+								registerButton.show(); //show the register button
+							} else { //ok
+								registerProgress.progressbar("option",{value:100}); //set progress to 100%
+								showPanel();
+								getprofile();
+								registerProgress.hide(); //hide the progress bar
+								registerButton.show(); //show the register button
+								$("#signin-register-tabs").tabs({active:0});
+							}							
+						}catch(ex) {
+							registerErrorBox.show();
+							registerErrorBox.html("Unexpected error!");
+						}
+					}
+				});
+			});
+			
+			//check if the user is already logged in
+			function getprofile() {
+				$.ajax({
+					type: "GET",
+					url: "users/api.php?action=getprofile",
+					success: function(response) {
+						try {
+							var response=JSON.parse(response);
+							if(response.status=="ok") {
+								var profile=response.body;
+								$("#profile-username").html(profile.username);
+								$("#profile-email").html(profile.email);
+								var score=0;
+								var levels=0;
+								for(var i=0;i<profile.achievements.length;i++) {
+									score+=profile.achievements[i].score;
+									if(profile.achievements[i].score>0) {levels++;}
+								}
+								$("#profile-score").html(score);
+								$("#profile-levels").html(levels);
+								showPanel("#profile-tabs");
+								return;
+							}
+						} catch(ex) {}
+						showPanel("#signin-register-tabs");
+					},
+					error: function() {
+						showPanel("#signin-register-tabs");
+					}
+				});
+			}
+			
+			getprofile();
+			
+			function showPanel(selector) {
+				if(!selector) {
+					$("#signin-register-tabs").hide();
+					$("#profile-tabs").hide();
+					$("#spinner").show();					
+				} else {
+					$("#spinner").hide();
+					if(selector=="#signin-register-tabs") {
+						$("#profile-tabs").hide();
+						$(selector).show();
+					} else if(selector=="#profile-tabs") {
+						$("#signin-register-tabs").hide();
+						$(selector).show();
+					}
+				}				
+			}
+			
+			function signin() {
+				var signinForm=$("#form-signin");
+				var formData=signinForm.serialize();
+				signinErrorBox.hide();
+				$.ajax({
+					type: "POST",
+					url: signinForm.attr("action"),
+					data: formData,
+					success: function(response) {
+						try {
+							var response=JSON.parse(response);
+							if(response.status=="ok") {
+								showPanel();
+								getprofile();
+							} else {
+								signinErrorBox.show();
+								signinErrorBox.html("Invalid credentials!");
+							}
+						} catch(ex) {
+							signinErrorBox.show();
+							signinErrorBox.html("Unexpected error!");
+						}
+					}
+				});			
+			}
+			
+			function logout() {
+				$.ajax({
+					type: "GET",
+					url: "users/api.php?action=logout",
+					success: function(response) {
+						try {
+							var response=JSON.parse(response);
+							if(response.status=="ok") {
+								showPanel("#signin-register-tabs");
+							}
+						} catch(ex) {}
+					}
+				});
+			}
+		</script>
+		
+		<!--facebook sdk-->
+		<div id="fb-root"></div>
+		<script>(function(d, s, id) {
+		  var js, fjs = d.getElementsByTagName(s)[0];
+		  if (d.getElementById(id)) return;
+		  js = d.createElement(s); js.id = id;
+		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3";
+		  fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+		</script>		
+	</body>
+</html>
